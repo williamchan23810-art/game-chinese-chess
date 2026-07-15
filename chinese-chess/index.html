@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>ChineseChessInvite</title>
+    <!-- Google Fonts: Outfit for English, ZCOOL XiaoWei for Chinese Ink script -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1c120c">
+    <!-- Load PeerJS for zero-server WebRTC Peer-to-Peer real-time multiplayer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header area -->
+        <header class="game-header glass-panel">
+            <div class="header-logo">
+                <span class="logo-text">ChineseChessInvite</span>
+                <span class="sub-logo-text">WILLIAMHCHANSTUDIO</span>
+            </div>
+            <div class="header-actions">
+                <button id="btn-restart" class="btn btn-secondary">Menu</button>
+                <div class="giveup-container" style="position: relative;">
+                    <button id="btn-giveup" class="btn btn-secondary">Give Up</button>
+                    <!-- Give Up Confirmation overlay -->
+                    <div id="giveup-confirm-overlay" class="giveup-confirm-overlay" style="display: none;">
+                        <button id="btn-confirm-giveup" class="btn-confirm-tick" title="Confirm Forfeit">✓</button>
+                        <button id="btn-cancel-giveup" class="btn-cancel-cross" title="Cancel">✗</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- P2P Connection Status Panel -->
+        <div id="connection-status-panel" class="connection-status-panel glass-panel" style="display: none;">
+            <span class="status-indicator-dot"></span>
+            <span id="connection-status-text">P2P: Local Mode</span>
+        </div>
+
+        <!-- Player Info Cards Panel (Top-Bottom or Side-by-Side) -->
+        <div class="players-panel">
+            <!-- Black Player (Host) Card -->
+            <div id="player-black-card" class="player-card glass-panel player-black">
+                <div class="player-avatar">Host</div>
+                <div class="player-meta">
+                    <span class="player-name">Host (Black)</span>
+                    <div class="player-cards-status">
+                        <span class="card-icon yellow-card" style="display: none;">🟨</span>
+                        <span class="card-icon red-card" style="display: none;">🟥</span>
+                    </div>
+                </div>
+                <div id="timer-black" class="player-timer">02:00</div>
+            </div>
+
+            <!-- Red Player (Guest - Starts First) Card -->
+            <div id="player-red-card" class="player-card glass-panel player-red active-turn">
+                <div class="player-avatar">Guest</div>
+                <div class="player-meta">
+                    <span class="player-name">Guest (Red) <span>★</span></span>
+                    <div class="player-cards-status">
+                        <span class="card-icon yellow-card" style="display: none;">🟨</span>
+                        <span class="card-icon red-card" style="display: none;">🟥</span>
+                    </div>
+                </div>
+                <div id="timer-red" class="player-timer">02:00</div>
+            </div>
+        </div>
+
+        <!-- Main Board Screen -->
+        <main class="board-area glass-panel">
+            <div class="board-wrapper">
+                <!-- SVG Grid drawing underlay -->
+                <svg class="board-grid-svg" viewBox="0 0 380 425" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Board Outer border -->
+                    <rect x="25" y="25" width="330" height="375" class="grid-border" />
+                    <rect x="21" y="21" width="338" height="383" class="grid-border-outer" />
+
+                    <!-- Horizontal Grid Lines (10 lines) -->
+                    <!-- Spacing: 375 / 9 = 41.67 px per cell -->
+                    <!-- Vertical grid lines: 330 / 8 = 41.25 px per cell -->
+                    <line x1="25" y1="25" x2="355" y2="25" class="grid-line" />
+                    <line x1="25" y1="66.67" x2="355" y2="66.67" class="grid-line" />
+                    <line x1="25" y1="108.33" x2="355" y2="108.33" class="grid-line" />
+                    <line x1="25" y1="150" x2="355" y2="150" class="grid-line" />
+                    <line x1="25" y1="191.67" x2="355" y2="191.67" class="grid-line" />
+                    <line x1="25" y1="233.33" x2="355" y2="233.33" class="grid-line" />
+                    <line x1="25" y1="275" x2="355" y2="275" class="grid-line" />
+                    <line x1="25" y1="316.67" x2="355" y2="316.67" class="grid-line" />
+                    <line x1="25" y1="358.33" x2="355" y2="358.33" class="grid-line" />
+                    <line x1="25" y1="400" x2="355" y2="400" class="grid-line" />
+
+                    <!-- Vertical Grid Lines (9 lines, break at River row index 4-5) -->
+                    <!-- Cols: 25, 66.25, 107.50, 148.75, 190.00, 231.25, 272.50, 313.75, 355 -->
+                    <!-- Outer files go all the way -->
+                    <line x1="25" y1="25" x2="25" y2="400" class="grid-line" />
+                    <line x1="355" y1="25" x2="355" y2="400" class="grid-line" />
+
+                    <!-- Inner vertical lines on Top side (Black) -->
+                    <line x1="66.25" y1="25" x2="66.25" y2="191.67" class="grid-line" />
+                    <line x1="107.5" y1="25" x2="107.5" y2="191.67" class="grid-line" />
+                    <line x1="148.75" y1="25" x2="148.75" y2="191.67" class="grid-line" />
+                    <line x1="190.0" y1="25" x2="190.0" y2="191.67" class="grid-line" />
+                    <line x1="231.25" y1="25" x2="231.25" y2="191.67" class="grid-line" />
+                    <line x1="272.5" y1="25" x2="272.5" y2="191.67" class="grid-line" />
+                    <line x1="313.75" y1="25" x2="313.75" y2="191.67" class="grid-line" />
+
+                    <!-- Inner vertical lines on Bottom side (Red) -->
+                    <line x1="66.25" y1="233.33" x2="66.25" y2="400" class="grid-line" />
+                    <line x1="107.5" y1="233.33" x2="107.5" y2="400" class="grid-line" />
+                    <line x1="148.75" y1="233.33" x2="148.75" y2="400" class="grid-line" />
+                    <line x1="190.0" y1="233.33" x2="190.0" y2="400" class="grid-line" />
+                    <line x1="231.25" y1="233.33" x2="231.25" y2="400" class="grid-line" />
+                    <line x1="272.5" y1="233.33" x2="272.5" y2="400" class="grid-line" />
+                    <line x1="313.75" y1="233.33" x2="313.75" y2="400" class="grid-line" />
+
+                    <!-- Palaces Diagonal Lines -->
+                    <!-- Top Palace (Black) -->
+                    <line x1="148.75" y1="25" x2="231.25" y2="108.33" class="grid-line diagonal" />
+                    <line x1="231.25" y1="25" x2="148.75" y2="108.33" class="grid-line diagonal" />
+
+                    <!-- Bottom Palace (Red) -->
+                    <line x1="148.75" y1="316.67" x2="231.25" y2="400" class="grid-line diagonal" />
+                    <line x1="231.25" y1="316.67" x2="148.75" y2="400" class="grid-line diagonal" />
+
+                    <!-- River Calligraphy Text -->
+                    <text x="90" y="212.5" class="river-text text-left">楚河</text>
+                    <text x="290" y="212.5" class="river-text text-right">漢界</text>
+
+                    <!-- Tactical Starting Markers (Pawn & Cannon positions) -->
+                    <path d="M 61.25 108.33 L 71.25 108.33 M 66.25 103.33 L 66.25 113.33" class="tac-marker" /> <!-- Left Black Cannon -->
+                    <path d="M 308.75 108.33 L 318.75 108.33 M 313.75 103.33 L 313.75 113.33" class="tac-marker" /> <!-- Right Black Cannon -->
+                    <path d="M 61.25 316.67 L 71.25 316.67 M 66.25 311.67 L 66.25 321.67" class="tac-marker" /> <!-- Left Red Cannon -->
+                    <path d="M 308.75 316.67 L 318.75 316.67 M 313.75 311.67 L 313.75 321.67" class="tac-marker" /> <!-- Right Red Cannon -->
+
+                    <!-- Pawns Black row 3, cols 0, 2, 4, 6, 8 -->
+                    <path d="M 25 145 L 25 155 M 20 150 L 30 150" class="tac-marker" />
+                    <path d="M 107.5 145 L 107.5 155 M 102.5 150 L 112.5 150" class="tac-marker" />
+                    <path d="M 190 145 L 190 155 M 185 150 L 195 150" class="tac-marker" />
+                    <path d="M 272.5 145 L 272.5 155 M 267.5 150 L 277.5 150" class="tac-marker" />
+                    <path d="M 355 145 L 355 155 M 350 150 L 360 150" class="tac-marker" />
+
+                    <!-- Pawns Red row 6, cols 0, 2, 4, 6, 8 -->
+                    <path d="M 25 270 L 25 280 M 20 275 L 30 275" class="tac-marker" />
+                    <path d="M 107.5 270 L 107.5 280 M 102.5 275 L 112.5 275" class="tac-marker" />
+                    <path d="M 190 270 L 190 280 M 185 275 L 195 275" class="tac-marker" />
+                    <path d="M 272.5 270 L 272.5 280 M 267.5 275 L 277.5 275" class="tac-marker" />
+                    <path d="M 355 270 L 355 280 M 350 275 L 360 275" class="tac-marker" />
+                </svg>
+
+                <!-- Layer for Ghost Destination Markers (Tap 1 Target Selection) -->
+                <div id="ghost-markers-container" class="markers-overlay">
+                    <!-- Dots generated dynamically via JS -->
+                </div>
+
+                <!-- Layer for Active 32 Wooden Pieces -->
+                <div id="pieces-container" class="pieces-overlay">
+                    <!-- Calligraphic circular tiles generated dynamically via JS -->
+                </div>
+
+            </div>
+        </main>
+
+        <!-- System Message Bar -->
+        <footer class="system-bar glass-panel" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; padding: 8px 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+                <span id="system-status">Red Guest's Turn. Make your move!</span>
+                <div id="check-alert" class="check-alert" style="display: none;">CHECK!</div>
+            </div>
+            <button id="btn-commit-move" class="btn btn-glow" style="display: none; background: #2ecc71; color: #fff; border-color: #27ae60; font-weight: 800; font-size: 0.95rem; padding: 8px 16px; border-radius: 8px; flex-shrink: 0; cursor: pointer; transition: transform 0.2s;">✓ Confirm Move</button>
+        </footer>
+    </div>
+
+    <!-- Forfeit / Game End Modal Overlay -->
+    <div id="modal-gameover" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-panel text-center">
+            <div id="modal-card-icon" class="modal-card-icon">🏆</div>
+            <h2 id="modal-title">Game Over</h2>
+            <p id="modal-message">Red wins by Checkmate!</p>
+            <button id="btn-modal-restart" class="btn btn-primary btn-glow">New Game</button>
+        </div>
+    </div>
+
+    <!-- Invitation Link Modal -->
+    <div id="modal-invite" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-panel text-center scale-up" style="max-width: 420px;">
+            <div class="modal-card-icon">✉️</div>
+            <h2>Invite Connections</h2>
+            <p>Send links to connect and play or spectate!</p>
+            
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gold);">Guest Player Link:</label>
+                <div class="invite-link-container" style="margin-top: 0;">
+                    <input type="text" id="invite-url-input" class="invite-url-input" readonly value="">
+                    <button id="btn-copy-url" class="btn btn-primary btn-glow">Copy</button>
+                </div>
+            </div>
+
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gold);">Guest Passcode (Share with Guest):</label>
+                <div id="game-passcode-display" style="background: rgba(0, 0, 0, 0.4); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); color: #2ecc71; font-weight: 800; font-size: 1.2rem; text-align: center; letter-spacing: 4px;">----</div>
+            </div>
+
+            <div id="invite-spectator-section" style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gold);">Spectators Link:</label>
+                <div class="invite-link-container" style="margin-top: 0;">
+                    <input type="text" id="spectate-url-input" class="invite-url-input" readonly value="">
+                    <button id="btn-copy-spectate-url" class="btn btn-primary btn-glow">Copy</button>
+                </div>
+            </div>
+
+            <button id="btn-close-invite" class="btn btn-secondary" style="margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Startup Mode Selection Modal -->
+    <div id="modal-start-mode" class="modal-overlay">
+        <div class="modal-card glass-panel text-center scale-up">
+            <img src="./ChineseChessIcon.jpg" alt="Chinese Chess Icon" class="modal-card-image">
+            <h2>Chinese Chess</h2>
+            <p>Select your game mode to begin:</p>
+            <div class="mode-select-buttons">
+                <button id="btn-mode-ai" class="btn btn-primary btn-glow">🤖 One Player</button>
+                <button id="btn-mode-spectator" class="btn btn-secondary">👥 Two Players (with Spectators)</button>
+                <button id="btn-mode-p2p" class="btn btn-secondary">🌐 Two Players (Online Invite)</button>
+            </div>
+            <div class="quick-guide-box">
+                <h3>📜 Quick Start & Rules Guide</h3>
+                <ul>
+                    <li><strong>Turn Timers:</strong> Watch the clock! Your turn timer is dynamic and updates based on the moves played. Make your move before it reaches zero.</li>
+                    <li><strong>No Take-Backs:</strong> Clicking a piece highlights destination markers. Once you select a move, you must click the green <strong>✓ Confirm Move</strong> button. Once confirmed, the move cannot be undone!</li>
+                    <li><strong>Yellow Card Penalty:</strong> If your timer reaches <code>0:00</code>, you receive a <strong>Yellow Card</strong> (only once per game) and a 1-minute emergency extension. Expiring the timer a second time results in an automatic Red Card forfeit!</li>
+                    <li><strong>King Escape & Captures:</strong> If you are in Check (announced by a voice warning), you must protect or escape your King. Moving into check or leaving your King in check is blocked. If a King is captured directly, the game ends instantly in a loss!</li>
+                    <li><strong>How to Invite Friends (Online P2P):</strong> Select the <strong>Two Players (Online Invite)</strong> mode, copy the Guest Link and share it with your friend along with the 4-digit passcode. <em>Note: Online play requires a secure context (HTTPS / Netlify or localhost) to connect!</em></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Response Invitation Timeout Modal -->
+    <div id="modal-no-response" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-panel text-center scale-up">
+            <div class="modal-card-icon">⏳</div>
+            <h2>No Response</h2>
+            <p>Your invite has not been answered. What would you like to do?</p>
+            <div class="no-response-buttons">
+                <button id="btn-timeout-oneplayer" class="btn btn-primary btn-glow">Play vs Computer</button>
+                <button id="btn-timeout-retry" class="btn btn-secondary">Resend Invite</button>
+                <button id="btn-timeout-menu" class="btn btn-secondary">Return to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline service integration -->
+    <script src="app.js"></script>
+</body>
+</html>
