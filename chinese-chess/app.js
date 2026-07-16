@@ -686,21 +686,8 @@ function endGame(winnerSide, message) {
     clearInterval(gameState.timerId);
     
     document.body.classList.remove('time-warning');
+    console.log('[Game Over]', message);
     const modal = document.getElementById('modal-gameover');
-    const icon = document.getElementById('modal-card-icon');
-    const title = document.getElementById('modal-title');
-    const msg = document.getElementById('modal-message');
-
-    if (winnerSide) {
-        icon.textContent = '🏆';
-        title.textContent = 'Victory!';
-        msg.textContent = message;
-    } else {
-        icon.textContent = '🤝';
-        title.textContent = 'Draw';
-        msg.textContent = message;
-    }
-
     modal.style.display = 'flex';
 }
 
@@ -1106,9 +1093,13 @@ function toggleGiveUpConfirm(show) {
     if (show) {
         overlay.style.display = 'flex';
         playSound('select');
+        clearInterval(gameState.timerId); // Pause timers while confirming forfeit
     } else {
         overlay.style.display = 'none';
         playSound('select');
+        if (!gameState.isGameOver) {
+            startTimer(); // Resume timers if cancel forfeit
+        }
     }
 }
 
@@ -1234,6 +1225,34 @@ function showCopyLinkModal(roomLink) {
     document.getElementById('modal-invite').style.display = 'flex';
 }
 
+function cleanupP2PFailure() {
+    if (gameState.inviteTimeoutId) {
+        clearTimeout(gameState.inviteTimeoutId);
+        gameState.inviteTimeoutId = null;
+    }
+    if (gameState.peer) {
+        try {
+            gameState.peer.destroy();
+        } catch (e) {
+            console.error('[P2P] Error destroying peer:', e);
+        }
+        gameState.peer = null;
+        gameState.peerId = null;
+        gameState.playerConn = null;
+        gameState.spectatorConns = [];
+    }
+    document.getElementById('connection-status-panel').style.display = 'none';
+    document.getElementById('modal-start-mode').style.display = 'flex';
+    document.getElementById('modal-passcode').style.display = 'none';
+    document.getElementById('modal-invite').style.display = 'none';
+    document.getElementById('modal-no-response').style.display = 'none';
+    
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+    gameState.mode = null;
+    gameState.role = null;
+}
+
 function startInviteTimeout() {
     if (gameState.inviteTimeoutId) {
         clearTimeout(gameState.inviteTimeoutId);
@@ -1241,11 +1260,11 @@ function startInviteTimeout() {
 
     gameState.inviteTimeoutId = setTimeout(() => {
         if (!gameState.playerConn || !gameState.playerConn.open) {
-            console.log('[P2P] No Response: 30 seconds connection window expired');
+            console.log('[P2P] No Response: 5 minutes connection window expired');
             document.getElementById('modal-no-response').style.display = 'flex';
             playSound('select');
         }
-    }, 30000); // 30 seconds
+    }, 300000); // 5 minutes
 }
 
 function initP2P(roomToConnect = null) {
@@ -1369,15 +1388,16 @@ function initP2P(roomToConnect = null) {
             statusDot.className = 'status-indicator-dot';
             statusText.textContent = `P2P Error: ${err.type}`;
             
+            let errMsg = `P2P Connection Error: ${err.message || err.type}`;
             if (err.type === 'peer-unavailable') {
-                alert("The game host could not be found. Please check that the host is online and the invite link is correct.");
+                errMsg = "The game host could not be found. Please check that the host is online and the invite link is correct.";
             } else if (err.type === 'network') {
-                alert("Network error connecting to the matchmaking server. Please check your internet connection.");
+                errMsg = "Network error connecting to the matchmaking server. Please check your internet connection.";
             } else if (err.type === 'webrtc') {
-                alert("WebRTC error. Your browser or network may be blocking peer-to-peer connections.");
-            } else {
-                alert(`P2P Connection Error: ${err.message || err.type}`);
+                errMsg = "WebRTC error. Your browser or network may be blocking peer-to-peer connections.";
             }
+            alert(errMsg);
+            cleanupP2PFailure();
         });
 
     } catch (e) {
@@ -1407,6 +1427,8 @@ function connectToHost(hostId) {
         console.error('[P2P] Connection Error:', err);
         statusDot.className = 'status-indicator-dot';
         statusText.textContent = 'P2P: Connection Failed!';
+        alert("P2P Connection Error: Failed to connect to the game host.");
+        cleanupP2PFailure();
     });
 }
 
@@ -1455,8 +1477,13 @@ function setupHostPlayerConnection(connection) {
     speakAlert("Opponent joined. Red's turn first.");
     initBoard();
     
-    // Hide the invite modal when player joins!
+    // Clear timeouts and modals
+    if (gameState.inviteTimeoutId) {
+        clearTimeout(gameState.inviteTimeoutId);
+        gameState.inviteTimeoutId = null;
+    }
     document.getElementById('modal-invite').style.display = 'none';
+    document.getElementById('modal-no-response').style.display = 'none';
     
     connection.send({
         type: 'sync-timers',
@@ -1676,16 +1703,42 @@ document.addEventListener('DOMContentLoaded', () => {
             gameState.role = 'spectator';
             initP2P(room);
         } else {
-            const enteredPasscode = prompt("Enter the 4-digit Game Passcode to join as Player:");
-            if (!enteredPasscode) {
-                alert("Passcode is required to join as a player.");
-                document.getElementById('modal-start-mode').style.display = 'flex';
-            } else {
-                gameState.enteredPasscode = enteredPasscode;
-                initP2P(room);
-            }
+            const passcodeModal = document.getElementById('modal-passcode');
+            const passcodeInput = document.getElementById('guest-passcode-input');
+            passcodeInput.value = '';
+            passcodeModal.style.display = 'flex';
+            passcodeInput.focus();
         }
     }
+
+    // Custom Passcode Modal Event Listeners
+    const passcodeModal = document.getElementById('modal-passcode');
+    const passcodeInput = document.getElementById('guest-passcode-input');
+
+    document.getElementById('btn-submit-passcode').addEventListener('click', () => {
+        const enteredPasscode = passcodeInput.value.trim();
+        if (!enteredPasscode || enteredPasscode.length !== 4) {
+            alert("Please enter a valid 4-digit passcode.");
+            return;
+        }
+        gameState.enteredPasscode = enteredPasscode;
+        passcodeModal.style.display = 'none';
+        initP2P(room);
+    });
+
+    document.getElementById('btn-cancel-passcode').addEventListener('click', () => {
+        passcodeModal.style.display = 'none';
+        document.getElementById('modal-start-mode').style.display = 'flex';
+        window.history.replaceState({}, document.title, window.location.pathname);
+        gameState.mode = null;
+        gameState.role = null;
+    });
+
+    passcodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('btn-submit-passcode').click();
+        }
+    });
 
     // 3. Commit move overlay Tap 3 action (with touchstart optimization for mobile)
     const commitBtn = document.getElementById('btn-commit-move');
@@ -1807,25 +1860,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 8. Give Up actions
-    document.getElementById('btn-giveup').addEventListener('click', (e) => {
+    const btnGiveup = document.getElementById('btn-giveup');
+    const giveupHandler = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         toggleGiveUpConfirm(true);
-    });
+    };
+    btnGiveup.addEventListener('click', giveupHandler);
+    btnGiveup.addEventListener('touchstart', giveupHandler, { passive: false });
 
-    document.getElementById('btn-confirm-giveup').addEventListener('click', (e) => {
+    const btnConfirmGiveup = document.getElementById('btn-confirm-giveup');
+    const confirmGiveupHandler = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         executeGiveUp();
-    });
+    };
+    btnConfirmGiveup.addEventListener('click', confirmGiveupHandler);
+    btnConfirmGiveup.addEventListener('touchstart', confirmGiveupHandler, { passive: false });
 
-    document.getElementById('btn-cancel-giveup').addEventListener('click', (e) => {
+    const btnCancelGiveup = document.getElementById('btn-cancel-giveup');
+    const cancelGiveupHandler = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         toggleGiveUpConfirm(false);
-    });
+    };
+    btnCancelGiveup.addEventListener('click', cancelGiveupHandler);
+    btnCancelGiveup.addEventListener('touchstart', cancelGiveupHandler, { passive: false });
 
     // Tap outside resets selection and overlays
     window.addEventListener('click', (e) => {
         // Ignore clicks if the target or its parent is the #btn-commit-move button
         if (e.target.closest('#btn-commit-move')) {
+            return;
+        }
+        // Ignore clicks if the target is inside the giveup container (prevent closing before click executes)
+        if (e.target.closest('.giveup-container')) {
             return;
         }
         // Reset confirmation markers
@@ -1836,7 +1905,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-commit-move').style.display = 'none';
         
         // Hide Give Up overlays
-        document.getElementById('giveup-confirm-overlay').style.display = 'none';
+        toggleGiveUpConfirm(false);
     });
 
     // Mobile viewport touch optimization: trigger voice synth initialization on first touch

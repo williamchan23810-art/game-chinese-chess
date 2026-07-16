@@ -4,26 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
     <title>ChineseChessInvite</title>
-
-    <!-- ======================================================= -->
-    <!-- Open Graph (OG) Meta Tags for Texting & WhatsApp Previews -->
-    <!-- ======================================================= -->
-    <!-- The title of your game in the preview chat bubble -->
-    <meta property="og:title" content="ChineseChessInvite" />
-    
-    <!-- An engaging 1-line description inviting players to join -->
-    <meta property="og:description" content="Play traditional Chinese Chess (Xiangqi) instantly with a friend!" />
-    
-    <!-- Points directly to your new .jpg file in your root folder -->
-    <meta property="og:image" content="./chinese-chess-og-icon.jpg" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="1024" />
-    <meta property="og:image:height" content="1024" />
-    <!-- ======================================================= -->
-    
     <!-- Google Fonts: Outfit for English, ZCOOL XiaoWei for Chinese Ink script -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1c120c">
     <!-- Load PeerJS for zero-server WebRTC Peer-to-Peer real-time multiplayer -->
@@ -34,8 +17,8 @@
         <!-- Header area -->
         <header class="game-header glass-panel">
             <div class="header-logo">
-                <span class="logo-text">ChineseChessInvite</span>
-                <span class="sub-logo-text">WILLIAMHCHANSTUDIO</span>
+                <img src="logo.jpg" alt="William H. Chan Studio Logo" class="header-logo-img">
+                <span class="logo-text">Chinese Chess Invite</span>
             </div>
             <div class="header-actions">
                 <button id="btn-restart" class="btn btn-secondary">Menu</button>
@@ -192,9 +175,8 @@
     <!-- Forfeit / Game End Modal Overlay -->
     <div id="modal-gameover" class="modal-overlay" style="display: none;">
         <div class="modal-card glass-panel text-center">
-            <div id="modal-card-icon" class="modal-card-icon">🏆</div>
-            <h2 id="modal-title">Game Over</h2>
-            <p id="modal-message">Red wins by Checkmate!</p>
+            <img src="logo.jpg" alt="William H. Chan Studio Logo" class="end-logo-img">
+            <h2 id="modal-title" style="margin-top: 10px; margin-bottom: 5px;">Thanks for Playing</h2>
             <button id="btn-modal-restart" class="btn btn-primary btn-glow">New Game</button>
         </div>
     </div>
@@ -228,6 +210,22 @@
             </div>
 
             <button id="btn-close-invite" class="btn btn-secondary" style="margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Passcode Entry Modal for Guest -->
+    <div id="modal-passcode" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-panel text-center scale-up" style="max-width: 360px;">
+            <div class="modal-card-icon">🔑</div>
+            <h2>Enter Passcode</h2>
+            <p>Enter the 4-digit passcode shared by the host:</p>
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                <input type="text" id="guest-passcode-input" maxlength="4" placeholder="••••" style="background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--gold); font-weight: 800; font-size: 1.5rem; text-align: center; letter-spacing: 6px; width: 100%; outline: none;">
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button id="btn-submit-passcode" class="btn btn-primary btn-glow" style="flex: 1;">Join</button>
+                    <button id="btn-cancel-passcode" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -270,6 +268,6 @@
     </div>
 
     <!-- Offline service integration -->
-    <script src="app.js"></script>
+    <script src="app.js?v=1.1"></script>
 </body>
 </html>
