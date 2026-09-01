@@ -34,6 +34,223 @@ const PIECE_CHARS = {
     }
 };
 
+// --- Internationalization (i18n) Engine ---
+let currentLang = localStorage.getItem('chinese_chess_lang') || 'zh';
+
+const I18N = {
+    zh: {
+        app_title: "中國象棋 - 線上對弈",
+        header_title: "中國象棋",
+        menu: "主選單",
+        giveup: "認輸",
+        confirm_move: "✓ 確認出招",
+        check_alert: "將軍！",
+        host_name: "黑方 (房主)",
+        guest_name: "紅方 (挑戰者)",
+        host_avatar: "房主",
+        guest_avatar: "挑戰者",
+        spectator: "觀戰者",
+        turn_red: "紅方走子，請出招！",
+        turn_black: "黑方走子，請出招！",
+        turn_spectating: "{turn} 走子中...",
+        your_turn: "輪到您走子，請出招！",
+        opp_turn: "對方思考走子中...",
+        select_dest: "已選定目標，請點擊【確認出招】！",
+        check_warning: "【將軍！】請立即應將！",
+        checkmate_win: "絕殺！{winner} 獲勝！",
+        king_captured_win: "將帥被擒！{winner} 獲勝！",
+        forfeit_win: "{loser} 認輸，{winner} 獲勝！",
+        timeout_win: "超時紅牌！{winner} 獲勝！",
+        repetition_draw: "三次重複局面！和棋。",
+        game_over_thanks: "感謝對局",
+        new_game: "再來一局",
+        mode_select_title: "中國象棋",
+        mode_select_subtitle: "選擇遊戲模式開始對局：",
+        mode_ai: "🤖 單人對弈 (自我練習 / 輪流走子)",
+        mode_spectator: "👥 雙人對局 (允許觀戰)",
+        mode_p2p: "🌐 線上好友對戰 (私密邀請)",
+        guide_title: "📜 快速規則與指南",
+        guide_items: [
+            "<strong>計時規則：</strong>注意倒數計時！每步思考時間依回合增加，請在歸零前走子。",
+            "<strong>落子無悔：</strong>點選棋子會顯示可行路徑。選定後必須按下綠色<strong>【✓ 確認出招】</strong>按鈕。確認後不可悔棋！",
+            "<strong>黃牌警告：</strong>若計時歸零，將獲得一張<strong>【黃牌】</strong>並獲1分鐘緊急延長時間（每局限一次）。第二次歸零將直接出示紅牌判負！",
+            "<strong>將軍與應將：</strong>被將軍時（伴隨語音警告），必須應將解將。不能自殺送將。若帥/將被直接吃掉，立即判負！",
+            "<strong>線上好友對戰 (P2P)：</strong>選擇<strong>【線上好友對戰】</strong>，複製專屬邀請連結與4位數密碼分享給好友即可直接連線對局！"
+        ],
+        invite_title: "✉️ 邀請好友對局",
+        invite_subtitle: "將連結分享給好友即可連線對局或觀戰！",
+        invite_guest_label: "挑戰者專屬連結：",
+        invite_passcode_label: "房間密碼 (分享給挑戰者)：",
+        invite_spectator_label: "觀戰者專屬連結：",
+        copy: "複製",
+        copied: "已複製！",
+        close: "關閉",
+        passcode_title: "🔑 輸入房間密碼",
+        passcode_subtitle: "請輸入房主分享的4位數密碼：",
+        passcode_join: "加入對局",
+        passcode_cancel: "取消",
+        passcode_invalid: "請輸入正確的4位數密碼。",
+        timeout_title: "⏳ 無人應答",
+        timeout_subtitle: "您的邀請尚未收到回應，請問您想做什麼？",
+        timeout_solo: "單人對弈 (自我練習)",
+        timeout_retry: "重新發送邀請",
+        timeout_menu: "返回主選單",
+        p2p_waiting: "P2P: 等待挑戰者連線...",
+        p2p_connected: "P2P: 已連線！觀戰人數: {count}",
+        p2p_spectating: "P2P: 觀戰中。觀戰人數: {count}",
+        p2p_local: "P2P: 本地模式",
+        confirm_return_menu: "確定返回主選單並結束當前對局嗎？",
+        speech_check: "將軍！",
+        speech_red_win: "絕殺，紅方勝！",
+        speech_black_win: "絕殺，黑方勝！",
+        speech_draw: "和棋！",
+        speech_red_card: "超時，紅牌判負！",
+        speech_warning_turn: "請抓緊時間出招！",
+        speech_connected: "已連線，紅方先行。"
+    },
+    en: {
+        app_title: "Chinese Chess Invite",
+        header_title: "Chinese Chess Invite",
+        menu: "Menu",
+        giveup: "Give Up",
+        confirm_move: "✓ Confirm Move",
+        check_alert: "CHECK!",
+        host_name: "Host (Black)",
+        guest_name: "Guest (Red)",
+        host_avatar: "Host",
+        guest_avatar: "Guest",
+        spectator: "Spectator",
+        turn_red: "Red Guest's Turn. Make your move!",
+        turn_black: "Black Host's Turn. Make your move!",
+        turn_spectating: "{turn}'s Turn...",
+        your_turn: "Your Turn. Make your move!",
+        opp_turn: "Opponent's Turn. Waiting for move...",
+        select_dest: "Destination selected. Click Confirm Move!",
+        check_warning: "CHECK! You must escape or block the check!",
+        checkmate_win: "Checkmate! {winner} wins!",
+        king_captured_win: "King captured! {winner} wins!",
+        forfeit_win: "{loser} gave up. {winner} wins!",
+        timeout_win: "Time Out (Red Card)! {winner} wins!",
+        repetition_draw: "Threefold Repetition! Game Draw.",
+        game_over_thanks: "Thanks for Playing",
+        new_game: "New Game",
+        mode_select_title: "Chinese Chess",
+        mode_select_subtitle: "Select your game mode to begin:",
+        mode_ai: "🤖 One Player",
+        mode_spectator: "👥 Two Players (with Spectators)",
+        mode_p2p: "🌐 Two Players (Online Invite)",
+        guide_title: "📜 Quick Start & Rules Guide",
+        guide_items: [
+            "<strong>Turn Timers:</strong> Watch the clock! Your turn timer is dynamic and updates based on the moves played. Make your move before it reaches zero.",
+            "<strong>No Take-Backs:</strong> Clicking a piece highlights destination markers. Once you select a move, you must click the green <strong>✓ Confirm Move</strong> button. Once confirmed, the move cannot be undone!",
+            "<strong>Yellow Card Penalty:</strong> If your timer reaches <code>0:00</code>, you receive a <strong>Yellow Card</strong> (only once per game) and a 1-minute emergency extension. Expiring the timer a second time results in an automatic Red Card forfeit!",
+            "<strong>King Escape & Captures:</strong> If you are in Check (announced by a voice warning), you must protect or escape your King. Moving into check or leaving your King in check is blocked. If a King is captured directly, the game ends instantly in a loss!",
+            "<strong>How to Invite Friends (Online P2P):</strong> Select the <strong>Two Players (Online Invite)</strong> mode, copy the Guest Link and share it with your friend along with the 4-digit passcode."
+        ],
+        invite_title: "✉️ Invite Connections",
+        invite_subtitle: "Send links to connect and play or spectate!",
+        invite_guest_label: "Guest Player Link:",
+        invite_passcode_label: "Guest Passcode (Share with Guest):",
+        invite_spectator_label: "Spectators Link:",
+        copy: "Copy",
+        copied: "Copied!",
+        close: "Close",
+        passcode_title: "🔑 Enter Passcode",
+        passcode_subtitle: "Enter the 4-digit passcode shared by the host:",
+        passcode_join: "Join",
+        passcode_cancel: "Cancel",
+        passcode_invalid: "Please enter a valid 4-digit passcode.",
+        timeout_title: "⏳ No Response",
+        timeout_subtitle: "Your invite has not been answered. What would you like to do?",
+        timeout_solo: "Play vs Computer",
+        timeout_retry: "Resend Invite",
+        timeout_menu: "Return to Menu",
+        p2p_waiting: "P2P: Waiting for Guest...",
+        p2p_connected: "P2P: Connected! Spectators: {count}",
+        p2p_spectating: "P2P: Spectating. Spectators: {count}",
+        p2p_local: "P2P: Local Mode",
+        confirm_return_menu: "Return to main menu and end current game?",
+        speech_check: "Check!",
+        speech_red_win: "Red wins!",
+        speech_black_win: "Black wins!",
+        speech_draw: "Game draw!",
+        speech_red_card: "Red card forfeit!",
+        speech_warning_turn: "Wake up, baby! Your move!",
+        speech_connected: "Opponent joined. Red's turn first."
+    }
+};
+
+function t(key, params = {}) {
+    let str = (I18N[currentLang] && I18N[currentLang][key]) || (I18N['en'] && I18N['en'][key]) || key;
+    for (const [pKey, pVal] of Object.entries(params)) {
+        str = str.replace(new RegExp(`\\{${pKey}\\}`, 'g'), pVal);
+    }
+    return str;
+}
+
+function setLanguage(lang) {
+    if (!I18N[lang]) return;
+    currentLang = lang;
+    localStorage.setItem('chinese_chess_lang', lang);
+
+    // Update active states on language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+
+    document.title = t('app_title');
+
+    // Static text elements update
+    const el = (id) => document.getElementById(id);
+
+    if (el('header-logo-title')) el('header-logo-title').textContent = t('header_title');
+    if (el('btn-restart')) el('btn-restart').textContent = t('menu');
+    if (el('btn-giveup')) el('btn-giveup').textContent = t('giveup');
+    if (el('btn-commit-move')) el('btn-commit-move').textContent = t('confirm_move');
+    if (el('check-alert')) el('check-alert').textContent = t('check_alert');
+
+    if (el('avatar-black')) el('avatar-black').textContent = t('host_avatar');
+    if (el('name-black')) el('name-black').textContent = t('host_name');
+    if (el('avatar-red')) el('avatar-red').textContent = t('guest_avatar');
+    if (el('name-red')) el('name-red').innerHTML = `${t('guest_name')} <span>★</span>`;
+
+    if (el('modal-start-title')) el('modal-start-title').textContent = t('mode_select_title');
+    if (el('modal-start-subtitle')) el('modal-start-subtitle').textContent = t('mode_select_subtitle');
+    if (el('btn-mode-ai')) el('btn-mode-ai').textContent = t('mode_ai');
+    if (el('btn-mode-spectator')) el('btn-mode-spectator').textContent = t('mode_spectator');
+    if (el('btn-mode-p2p')) el('btn-mode-p2p').textContent = t('mode_p2p');
+    if (el('guide-title')) el('guide-title').textContent = t('guide_title');
+
+    const guideList = el('guide-list');
+    if (guideList && I18N[currentLang].guide_items) {
+        guideList.innerHTML = I18N[currentLang].guide_items.map(item => `<li>${item}</li>`).join('');
+    }
+
+    if (el('modal-invite-title')) el('modal-invite-title').textContent = t('invite_title');
+    if (el('modal-invite-subtitle')) el('modal-invite-subtitle').textContent = t('invite_subtitle');
+    if (el('lbl-invite-guest')) el('lbl-invite-guest').textContent = t('invite_guest_label');
+    if (el('btn-copy-url')) el('btn-copy-url').textContent = t('copy');
+    if (el('lbl-invite-passcode')) el('lbl-invite-passcode').textContent = t('invite_passcode_label');
+    if (el('lbl-invite-spectator')) el('lbl-invite-spectator').textContent = t('invite_spectator_label');
+    if (el('btn-copy-spectate-url')) el('btn-copy-spectate-url').textContent = t('copy');
+    if (el('btn-close-invite')) el('btn-close-invite').textContent = t('close');
+
+    if (el('modal-passcode-title')) el('modal-passcode-title').textContent = t('passcode_title');
+    if (el('modal-passcode-subtitle')) el('modal-passcode-subtitle').textContent = t('passcode_subtitle');
+    if (el('btn-submit-passcode')) el('btn-submit-passcode').textContent = t('passcode_join');
+    if (el('btn-cancel-passcode')) el('btn-cancel-passcode').textContent = t('passcode_cancel');
+
+    if (el('modal-timeout-title')) el('modal-timeout-title').textContent = t('timeout_title');
+    if (el('modal-timeout-subtitle')) el('modal-timeout-subtitle').textContent = t('timeout_subtitle');
+    if (el('btn-timeout-oneplayer')) el('btn-timeout-oneplayer').textContent = t('timeout_solo');
+    if (el('btn-timeout-retry')) el('btn-timeout-retry').textContent = t('timeout_retry');
+    if (el('btn-timeout-menu')) el('btn-timeout-menu').textContent = t('timeout_menu');
+
+    if (el('btn-modal-restart')) el('btn-modal-restart').textContent = t('new_game');
+
+    updateSystemStatus();
+}
+
 // --- Game State ---
 const gameState = {
     board: Array(10).fill(null).map(() => Array(9).fill(null)),
@@ -114,24 +331,24 @@ function playSound(type) {
     }
 }
 
-// Voice synthesizer using SpeechSynthesis API (offline-friendly)
+// Voice synthesizer using SpeechSynthesis API (Bilingual & offline-friendly)
 function speakAlert(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel(); // Cancel any existing speech
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1.0;
-        utterance.pitch = 1.2; // Playful voice pitch
-        
-        // Try to select a female voice if available
+        utterance.pitch = 1.1;
+
+        const lang = currentLang;
+        utterance.lang = lang === 'zh' ? 'zh-TW' : 'en-US';
+
         const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(voice => 
-            voice.name.toLowerCase().includes('female') || 
-            voice.name.toLowerCase().includes('google us english') ||
-            voice.name.toLowerCase().includes('zira') ||
-            voice.name.toLowerCase().includes('samantha')
-        );
-        if (femaleVoice) {
-            utterance.voice = femaleVoice;
+        if (lang === 'zh') {
+            const zhVoice = voices.find(v => (v.lang && v.lang.toLowerCase().startsWith('zh')) || (v.name && (v.name.includes('Chinese') || v.name.includes('Mandarin') || v.name.includes('Han') || v.name.includes('Yating') || v.name.includes('Mei-Jia') || v.name.includes('Sin-ji'))));
+            if (zhVoice) utterance.voice = zhVoice;
+        } else {
+            const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('samantha')));
+            if (enVoice) utterance.voice = enVoice;
         }
         window.speechSynthesis.speak(utterance);
     }
@@ -638,7 +855,7 @@ function makeMove(startR, startC, endR, endC) {
 
     // Repetition check (Threefold repetition check)
     if (checkThreefoldRepetition(stateStr)) {
-        endGame(null, 'Draw by Threefold Repetition');
+        endGame(null, t('repetition_draw'));
         return;
     }
 
@@ -648,12 +865,14 @@ function makeMove(startR, startC, endR, endC) {
 
     if (inCheck && !hasMoves) {
         // Checkmate
-        endGame(prevTurn, `${prevTurn === SIDES.RED ? 'Red Guest' : 'Black Host'} wins by Checkmate!`);
+        const winnerName = prevTurn === SIDES.RED ? t('guest_name') : t('host_name');
+        endGame(prevTurn, t('checkmate_win', { winner: winnerName }));
         return;
     } else if (!inCheck && !hasMoves) {
         // Stalemate: Stalemate is a Loss! Active player loses.
         const winner = gameState.turn === SIDES.RED ? SIDES.BLACK : SIDES.RED;
-        endGame(winner, `${gameState.turn === SIDES.RED ? 'Red Guest' : 'Black Host'} Stalestated (Loss)!`);
+        const winnerName = winner === SIDES.RED ? t('guest_name') : t('host_name');
+        endGame(winner, t('checkmate_win', { winner: winnerName }));
         return;
     }
 
@@ -673,12 +892,6 @@ function makeMove(startR, startC, endR, endC) {
 
     // Start timer for new player
     startTimer();
-
-    // Trigger AI move if in One Player Mode and it's the AI's turn
-    // (Disabled for local pass-and-play playability)
-    // if (gameState.mode === 'one-player' && gameState.turn === SIDES.BLACK && !gameState.isGameOver) {
-    //     setTimeout(makeAIMove, 800);
-    // }
 }
 
 function endGame(winnerSide, message) {
@@ -687,8 +900,21 @@ function endGame(winnerSide, message) {
     
     document.body.classList.remove('time-warning');
     console.log('[Game Over]', message);
+
+    const titleElem = document.getElementById('modal-title');
+    if (titleElem) {
+        if (winnerSide) {
+            const winnerName = winnerSide === SIDES.RED ? t('guest_name') : t('host_name');
+            titleElem.textContent = message || t('checkmate_win', { winner: winnerName });
+            speakAlert(winnerSide === SIDES.RED ? t('speech_red_win') : t('speech_black_win'));
+        } else {
+            titleElem.textContent = t('repetition_draw');
+            speakAlert(t('speech_draw'));
+        }
+    }
+
     const modal = document.getElementById('modal-gameover');
-    modal.style.display = 'flex';
+    if (modal) modal.style.display = 'flex';
 }
 
 function checkThreefoldRepetition(currentHash) {
@@ -717,7 +943,7 @@ function startTimer() {
         // Critical Alarm: Pulse warning yellow background and speak voice countdown
         if (timeLeft === 30) {
             document.body.classList.add('time-warning');
-            speakAlert("Wake up, baby! Your move!");
+            speakAlert(t('speech_warning_turn'));
         }
 
         // Timer reaches 0:00 - trigger Penalty Strike
@@ -761,7 +987,7 @@ function handleTimeExpiration() {
         const cardElem = document.querySelector(`.player-${player} .yellow-card`);
         if (cardElem) cardElem.style.display = 'inline';
         
-        speakAlert("Strike one! One minute added.");
+        speakAlert(currentLang === 'zh' ? "黃牌警告！延長一分鐘。" : "Strike one! One minute added.");
         
         updateTimerDisplay();
         startTimer(); // Resume ticks on extension
@@ -777,11 +1003,12 @@ function triggerForfeit(forfeitPlayer, winnerPlayer) {
     flash.textContent = '🟥';
     document.body.appendChild(flash);
 
-    speakAlert("Time's up! Forfeit game.");
+    speakAlert(t('speech_red_card'));
 
     setTimeout(() => {
         flash.remove();
-        endGame(winnerPlayer, `${forfeitPlayer === SIDES.RED ? 'Red Guest' : 'Black Host'} Forfeited on time (Red Card)!`);
+        const winnerName = winnerPlayer === SIDES.RED ? t('guest_name') : t('host_name');
+        endGame(winnerPlayer, t('timeout_win', { winner: winnerName }));
     }, 1500);
 }
 
@@ -940,14 +1167,29 @@ function updateSystemStatus() {
     const alertElem = document.getElementById('check-alert');
     const statusElem = document.getElementById('system-status');
 
-    if (inCheck) {
-        alertElem.style.display = 'block';
-        speakAlert("Check");
-    } else {
-        alertElem.style.display = 'none';
+    if (alertElem) {
+        alertElem.textContent = t('check_alert');
+        alertElem.style.display = inCheck ? 'block' : 'none';
     }
 
-    statusElem.textContent = `${gameState.turn === SIDES.RED ? "Red Guest's" : "Black Host's"} turn.`;
+    if (inCheck) {
+        speakAlert(t('speech_check'));
+    }
+
+    if (statusElem) {
+        if (gameState.role === 'spectator') {
+            const turnName = gameState.turn === SIDES.RED ? t('guest_name') : t('host_name');
+            statusElem.textContent = t('turn_spectating', { turn: turnName });
+        } else if (gameState.mode === 'p2p') {
+            if (gameState.role === gameState.turn) {
+                statusElem.textContent = t('your_turn');
+            } else {
+                statusElem.textContent = t('opp_turn');
+            }
+        } else {
+            statusElem.textContent = gameState.turn === SIDES.RED ? t('turn_red') : t('turn_black');
+        }
+    }
 }
 
 // --- Heuristic AI Engine (One Player Mode) ---
@@ -1118,11 +1360,11 @@ function executeGiveUp() {
     });
 
     const winnerSide = forfeitSide === SIDES.RED ? SIDES.BLACK : SIDES.RED;
-    const winnerName = winnerSide === SIDES.RED ? "Red Guest" : "Black Host";
-    const loserName = forfeitSide === SIDES.RED ? "Red Guest" : "Black Host";
+    const winnerName = winnerSide === SIDES.RED ? t('guest_name') : t('host_name');
+    const loserName = forfeitSide === SIDES.RED ? t('guest_name') : t('host_name');
 
     document.getElementById('giveup-confirm-overlay').style.display = 'none';
-    endGame(winnerSide, `${loserName} gave up. ${winnerName} wins!`);
+    endGame(winnerSide, t('forfeit_win', { loser: loserName, winner: winnerName }));
 }
 
 // --- P2P Network Handlers ---
@@ -1141,7 +1383,7 @@ function startP2PInviteFlow() {
     clearInterval(gameState.timerId); // Keep timers frozen at 15s until player joins
     const statusText = document.getElementById('connection-status-text');
     if (statusText) {
-        statusText.textContent = 'P2P: Waiting for guest connection...';
+        statusText.textContent = t('p2p_waiting');
     }
 
     // Generate random 4-digit passcode
@@ -1196,8 +1438,8 @@ function startP2PInviteFlow() {
                 // Native WhatsApp/Text Share sheet trigger (optional parallel call)
                 if (navigator.share) {
                     const shareData = {
-                        title: 'Join my Chinese Chess Game!',
-                        text: `Let's play a real-time game of Chinese Chess! Passcode: ${passcode}`,
+                        title: t('app_title'),
+                        text: `${t('invite_title')} Passcode: ${passcode}`,
                         url: roomLink
                     };
                     navigator.share(shareData)
@@ -1214,12 +1456,12 @@ function startP2PInviteFlow() {
 function showCopyLinkModal(roomLink) {
     const urlInput = document.getElementById('invite-url-input');
     urlInput.value = roomLink;
-    document.getElementById('btn-copy-url').textContent = 'Copy';
+    document.getElementById('btn-copy-url').textContent = t('copy');
 
     const spectateInput = document.getElementById('spectate-url-input');
     if (spectateInput) {
         spectateInput.value = `${roomLink}&spectate=true`;
-        document.getElementById('btn-copy-spectate-url').textContent = 'Copy';
+        document.getElementById('btn-copy-spectate-url').textContent = t('copy');
     }
 
     document.getElementById('modal-invite').style.display = 'flex';
@@ -1275,12 +1517,12 @@ function initP2P(roomToConnect = null) {
     if (roomToConnect) {
         if (gameState.role !== 'spectator') {
             gameState.role = SIDES.RED;
-            statusText.textContent = 'P2P: Connecting to Host...';
+            statusText.textContent = 'P2P: Connecting...';
         } else {
-            statusText.textContent = 'P2P: Connecting to Host as Spectator...';
+            statusText.textContent = 'P2P: Connecting as Spectator...';
         }
     } else {
-        statusText.textContent = 'P2P: Initializing Host...';
+        statusText.textContent = t('p2p_waiting');
         gameState.role = SIDES.BLACK; 
     }
 
@@ -1302,7 +1544,7 @@ function initP2P(roomToConnect = null) {
             if (roomToConnect) {
                 connectToHost(roomToConnect);
             } else {
-                statusText.textContent = 'P2P: Waiting for connections...';
+                statusText.textContent = t('p2p_waiting');
             }
         });
 
@@ -1447,12 +1689,12 @@ function setupClientConnection() {
     statusDot.className = 'status-indicator-dot connected';
     
     if (gameState.role === SIDES.RED) {
-        statusText.textContent = 'P2P: Connected! Playing as Guest (Red)';
-        speakAlert("Connected to Host. Red's turn. Make your move!");
+        statusText.textContent = t('p2p_connected', { count: 0 });
+        speakAlert(t('speech_connected'));
         initBoardLocal();
     } else if (gameState.role === 'spectator') {
-        statusText.textContent = 'P2P: Connected! Spectating game...';
-        speakAlert("Connected as spectator.");
+        statusText.textContent = t('p2p_spectating', { count: 0 });
+        speakAlert(currentLang === 'zh' ? "已進入觀戰模式。" : "Connected as spectator.");
     }
 
     gameState.playerConn.on('data', (data) => {
@@ -1463,7 +1705,7 @@ function setupClientConnection() {
         console.log('[P2P] Connection closed');
         statusDot.className = 'status-indicator-dot';
         statusText.textContent = 'P2P: Disconnected!';
-        speakAlert("Opponent disconnected.");
+        speakAlert(currentLang === 'zh' ? "對方已斷開連線。" : "Opponent disconnected.");
         gameState.playerConn = null;
     });
 }
@@ -1473,8 +1715,8 @@ function setupHostPlayerConnection(connection) {
     const statusDot = document.querySelector('.status-indicator-dot');
 
     statusDot.className = 'status-indicator-dot connected';
-    statusText.textContent = `P2P: Connected! Playing as Host (Black). Spectators: ${gameState.spectatorConns.length}`;
-    speakAlert("Opponent joined. Red's turn first.");
+    statusText.textContent = t('p2p_connected', { count: gameState.spectatorConns.length });
+    speakAlert(t('speech_connected'));
     initBoard();
     
     // Clear timeouts and modals
@@ -1499,7 +1741,7 @@ function setupHostPlayerConnection(connection) {
         console.log('[P2P] Player connection closed');
         statusDot.className = 'status-indicator-dot';
         statusText.textContent = 'P2P: Disconnected!';
-        speakAlert("Opponent disconnected.");
+        speakAlert(currentLang === 'zh' ? "對方已斷開連線。" : "Opponent disconnected.");
         gameState.playerConn = null;
     });
 
@@ -1524,7 +1766,7 @@ function broadcastSpectatorCount() {
     // Update Host UI status text if playing
     if (gameState.role === SIDES.BLACK) {
         const statusText = document.getElementById('connection-status-text');
-        statusText.textContent = `P2P: Connected! Playing as Host (Black). Spectators: ${count}`;
+        statusText.textContent = t('p2p_connected', { count: count });
     }
 }
 
@@ -1544,7 +1786,8 @@ function handleIncomingMessage(data) {
 
         // Check if the King is captured (killed)
         if (targetPiece && targetPiece.type === PIECE_TYPES.GENERAL) {
-            endGame(gameState.turn, `${gameState.turn === SIDES.RED ? 'Red Guest' : 'Black Host'} wins by capturing the King!`);
+            const winnerName = gameState.turn === SIDES.RED ? t('guest_name') : t('host_name');
+            endGame(gameState.turn, t('king_captured_win', { winner: winnerName }));
             return;
         }
 
@@ -1572,11 +1815,13 @@ function handleIncomingMessage(data) {
         const hasMoves = hasAnyLegalMoves(gameState.turn);
 
         if (inCheck && !hasMoves) {
-            endGame(prevTurn, `${prevTurn === SIDES.RED ? 'Red Guest' : 'Black Host'} wins by Checkmate!`);
+            const winnerName = prevTurn === SIDES.RED ? t('guest_name') : t('host_name');
+            endGame(prevTurn, t('checkmate_win', { winner: winnerName }));
             return;
         } else if (!inCheck && !hasMoves) {
             const winner = gameState.turn === SIDES.RED ? SIDES.BLACK : SIDES.RED;
-            endGame(winner, `${gameState.turn === SIDES.RED ? 'Red Guest' : 'Black Host'} Stalestated (Loss)!`);
+            const winnerName = winner === SIDES.RED ? t('guest_name') : t('host_name');
+            endGame(winner, t('checkmate_win', { winner: winnerName }));
             return;
         }
 
@@ -1617,8 +1862,8 @@ function handleIncomingMessage(data) {
     } else if (data.type === 'forfeit') {
         const oppSide = gameState.role === SIDES.RED ? SIDES.BLACK : SIDES.RED;
         const mySide = gameState.role;
-        const myName = mySide === SIDES.RED ? "Red Guest" : "Black Host";
-        const oppName = oppSide === SIDES.RED ? "Red Guest" : "Black Host";
+        const myName = mySide === SIDES.RED ? t('guest_name') : t('host_name');
+        const oppName = oppSide === SIDES.RED ? t('guest_name') : t('host_name');
         
         // Broadcast forfeit to all spectators if we are Host
         if (gameState.role === SIDES.BLACK) {
@@ -1629,7 +1874,7 @@ function handleIncomingMessage(data) {
             });
         }
 
-        endGame(mySide, `${oppName} gave up. ${myName} wins!`);
+        endGame(mySide, t('forfeit_win', { loser: oppName, winner: myName }));
     } else if (data.type === 'spectator-sync') {
         if (data.board) gameState.board = data.board;
         if (data.turn) gameState.turn = data.turn;
@@ -1647,7 +1892,7 @@ function handleIncomingMessage(data) {
         }
         
         const statusText = document.getElementById('connection-status-text');
-        statusText.textContent = `P2P: Spectating. Spectators: ${data.spectatorCount}`;
+        statusText.textContent = t('p2p_spectating', { count: data.spectatorCount });
         const statusPanel = document.getElementById('connection-status-panel');
         statusPanel.style.display = 'flex';
         const statusDot = document.querySelector('.status-indicator-dot');
@@ -1661,20 +1906,10 @@ function handleIncomingMessage(data) {
     } else if (data.type === 'spectator-count') {
         const statusText = document.getElementById('connection-status-text');
         if (gameState.role === 'spectator') {
-            statusText.textContent = `P2P: Spectating. Spectators: ${data.count}`;
+            statusText.textContent = t('p2p_spectating', { count: data.count });
         } else {
-            statusText.textContent = `P2P: Connected! Spectators: ${data.count}`;
+            statusText.textContent = t('p2p_connected', { count: data.count });
         }
-    } else if (data.type === 'undo-request') {
-        document.getElementById('modal-undo-request').style.display = 'flex';
-        playSound('select');
-    } else if (data.type === 'undo-accept') {
-        undoMoveLocal();
-        document.getElementById('system-status').textContent = 'Undo request accepted by opponent.';
-        speakAlert("Undo request accepted.");
-    } else if (data.type === 'undo-decline') {
-        document.getElementById('system-status').textContent = 'Undo request declined.';
-        speakAlert("Undo request declined.");
     } else if (data.type === 'auth-failed') {
         alert(`Connection Rejected: ${data.reason}`);
         if (gameState.playerConn) {
@@ -1688,11 +1923,26 @@ function handleIncomingMessage(data) {
 
 // --- Startup Event Hooks ---
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initial local board setup (does not start game clocks until mode selected)
+    // 1. Initialize language state and populate UI texts
+    setLanguage(currentLang);
+
+    // Bind language toggle button clicks (Header and Main Modal)
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lang = btn.dataset.lang;
+            if (lang) {
+                setLanguage(lang);
+                playSound('select');
+            }
+        });
+    });
+
+    // 2. Initial local board setup (does not start game clocks until mode selected)
     initBoardLocal();
     clearInterval(gameState.timerId); // Keep clock frozen on startup screen
 
-    // 2. Check room parameter to initiate Guest auto-join or Spectator auto-join
+    // 3. Check room parameter to initiate Guest auto-join or Spectator auto-join
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get('room');
     const spectate = urlParams.get('spectate');
@@ -1718,7 +1968,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-submit-passcode').addEventListener('click', () => {
         const enteredPasscode = passcodeInput.value.trim();
         if (!enteredPasscode || enteredPasscode.length !== 4) {
-            alert("Please enter a valid 4-digit passcode.");
+            alert(t('passcode_invalid'));
             return;
         }
         gameState.enteredPasscode = enteredPasscode;
@@ -1740,7 +1990,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. Commit move overlay Tap 3 action (with touchstart optimization for mobile)
+    // 4. Commit move overlay Tap 3 action (with touchstart optimization for mobile)
     const commitBtn = document.getElementById('btn-commit-move');
     const commitHandler = (e) => {
         e.preventDefault();
@@ -1750,9 +2000,9 @@ document.addEventListener('DOMContentLoaded', () => {
     commitBtn.addEventListener('click', commitHandler);
     commitBtn.addEventListener('touchstart', commitHandler, { passive: false });
 
-    // 4. Reset/Menu actions
+    // 5. Reset/Menu actions
     document.getElementById('btn-restart').addEventListener('click', () => {
-        if (confirm("Return to main menu and end current game?")) {
+        if (confirm(t('confirm_return_menu'))) {
             // Cancel connection timers
             if (gameState.inviteTimeoutId) clearTimeout(gameState.inviteTimeoutId);
             clearInterval(gameState.timerId);
@@ -1776,7 +2026,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-start-mode').style.display = 'flex';
     });
 
-    // 5. Game Mode Buttons Triggers
+    // 6. Game Mode Buttons Triggers
     document.getElementById('btn-mode-ai').addEventListener('click', () => {
         document.getElementById('modal-start-mode').style.display = 'none';
         gameState.mode = 'one-player';
@@ -1800,7 +2050,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startP2PInviteFlow();
     });
 
-    // 6. Invite Fallback URL copying
+    // 7. Invite Fallback URL copying
     document.getElementById('btn-close-invite').addEventListener('click', () => {
         document.getElementById('modal-invite').style.display = 'none';
     });
@@ -1811,7 +2061,7 @@ document.addEventListener('DOMContentLoaded', () => {
         urlInput.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(urlInput.value)
             .then(() => {
-                document.getElementById('btn-copy-url').textContent = 'Copied!';
+                document.getElementById('btn-copy-url').textContent = t('copied');
             })
             .catch(err => console.error('Failed to copy text', err));
     });
@@ -1822,12 +2072,12 @@ document.addEventListener('DOMContentLoaded', () => {
         urlInput.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(urlInput.value)
             .then(() => {
-                document.getElementById('btn-copy-spectate-url').textContent = 'Copied!';
+                document.getElementById('btn-copy-spectate-url').textContent = t('copied');
             })
             .catch(err => console.error('Failed to copy text', err));
     });
 
-    // 7. Timeout/No-Response bindings
+    // 8. Timeout/No-Response bindings
     document.getElementById('btn-timeout-oneplayer').addEventListener('click', () => {
         document.getElementById('modal-no-response').style.display = 'none';
         if (gameState.inviteTimeoutId) clearTimeout(gameState.inviteTimeoutId);
@@ -1859,7 +2109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-start-mode').style.display = 'flex';
     });
 
-    // 8. Give Up actions
+    // 9. Give Up actions
     const btnGiveup = document.getElementById('btn-giveup');
     const giveupHandler = (e) => {
         e.preventDefault();
@@ -1895,6 +2145,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Ignore clicks if the target is inside the giveup container (prevent closing before click executes)
         if (e.target.closest('.giveup-container')) {
+            return;
+        }
+        // Ignore clicks if inside language button group
+        if (e.target.closest('.lang-toggle-group')) {
             return;
         }
         // Reset confirmation markers
